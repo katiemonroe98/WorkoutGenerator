@@ -1,0 +1,161 @@
+library(shiny)
+
+
+ui <- fluidPage(
+
+    # Application title
+    titlePanel("Workout Generator"),
+
+    # Sidebar with a slider input for number of bins
+    sidebarLayout(
+        sidebarPanel(
+            selectInput("Difficulty", "Select Difficulty:", choices = c("Beginner", "Intermediate", "Advanced")),
+            selectInput("Time", "Select Time:", choices = c("15 Minutes", "30 Minutes", "60 Minutes")),
+            selectInput("Equipment", "Select If You Want To Use Dumbells:", choices = c("Yes", "No")),
+            checkboxGroupInput("Muscles",
+                               "Select Muscle Group(s):",
+                               c("Upper Body" = "Upper Body",
+                                 "Core" = "Core",
+                                 "Lower Body" = "Lower Body")),
+            actionButton("goButton", "Generate Workout")
+        ),
+
+        # Show a plot of the generated distribution
+        mainPanel(
+           tableOutput("nText")
+        )
+    )
+)
+
+
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+    ntext <- eventReactive(input$goButton, {
+
+        #Define exercizes
+        abs <- c("Crunches", "Reverse Crunches", "Flutter Kicks", "Sitting Twists", "Scissor Kicks", "Elbow Planks",
+                 "Cross Crunches", "Leg Raises", "One Leg Plank", "Mountain Climbers", "Leg Lifts", "High Knees",
+                 "Tuck Crunch", "Oblique Crunch", "Standing Outside Leg Raises" , "Plank Leg Raises")
+
+        absd <- c("Sitting Twists With Dumbbells", "Crunches With Dumbbells", "Dumbbell Toe Touches", "Core Stabilizers",
+                  "Dumbell Side Bend", " Bow Extensions")
+
+        arms <- c("Pushups", "Planks", "Forward Arm circles", "Bicep Dips", "Shoulder Taps", "Under Arm Reach",
+                  "Superman Press", "Backwards Arm Circles", "Jumping Jacks", "Bird Dogs", "Wide Arm Pushups",
+                  "One Arm Plank Reach", "Pushup Rotations", "Forearm Planks", "Knee Push Ups", "Forearm to Extended Plank")
+
+        armsd <- c("Bicep Curls", "Front Arm Extensions", "Scarecrow Extensions", "Side Curls" ,
+                   "Goal Post Press", "Overhead Tricept Extension", "Hammer Curls", "Scarecrows",
+                   "Cross Over Extensions", "Reverse Fly", "Tricep Extensions")
+
+        legs <- c("Squat", "Sump Squat", "Lunges", "Donkey Kicks", "Leg Raises", "Side Lunges",
+                  "Side Leg Swings", "Wall Sit", "Cross Leg Swings", "Side Leg Raises", "Mountain Climbers",
+                  "Squat Holds", "Front Kicks", "Side Kicks", "Calf Raises", "Standing Side Leg Raises",
+                  "Step Ups", "Split Squats", "Hip Thrust", "Burpees")
+
+        legsd <- c("Squat With Weight", "Lunges With Weights", "Goblet Squat", "Step Ups With Weights",
+                   "Split Squat With Weights", "Hip Thrust With Weights", "Sumo Squat With Weights", "Squat Holds With Weight",
+                   "One Leg Bridge With Weights", "Hold Bridge With Weights", "Calf Raises With Weights", "Split Squats With Weights",
+                   "Burpees With Weights")
+
+        #Difficulty
+        if (input$Difficulty == "Beginner"){
+            x <- "30 seconds workout, 30 seconds rest"
+        }
+        else if (input$Difficulty == "Intermediate"){
+            x <- "45 seconds workout, 15 seconds rest"
+        }
+        else if (input$Difficulty == "Advanced"){
+            x <- "60 seconds workout, 0 seconds rest"
+        }
+        g <- c(input$Muscles)
+        muscles <- c()
+
+
+        #Muscle Groups
+        if ('Lower Body' %in% g){
+            muscles <- c(muscles, legs)
+            if (input$Equipment == "Yes"){
+                muscles <- c(muscles, legsd)
+            }
+        }
+        if ('Core' %in% g){
+            muscles <- c(muscles, abs)
+            if (input$Equipment == "Yes"){
+                muscles <- c(muscles, absd)
+            }
+        }
+        if ('Upper Body' %in% g){
+            muscles <- c(muscles, arms)
+            if (input$Equipment == "Yes"){
+                muscles <- c(muscles, armsd)
+            }
+        }
+
+
+        #Time
+        if (input$Time == "15 Minutes"){
+            y <- "15"
+            exnums <- c("Exercise 1", "Exercize 2", "Exercize 3", "Exercize 4", "Exercize 5")
+            exes <- sample(muscles, 5)
+        }
+        else if (input$Time == "30 Minutes"){
+            y <- "30"
+            exnums <- c("Exercise 1", "Exercize 2", "Exercize 3", "Exercize 4", "Exercize 5","Exercise 6", "Exercize 7", "Exercize 8", "Exercize 9", "Exercize 10")
+            exes <- sample(muscles, 10)
+        }
+        else if (input$Time == "60 Minutes"){
+            y <- "60"
+            exnums <- c("Exercise 1", "Exercize 2", "Exercize 3", "Exercize 4", "Exercize 5","Exercise 6", "Exercize 7", "Exercize 8", "Exercize 9", "Exercize 10",
+                        "Exercise 11", "Exercize 12", "Exercize 13", "Exercize 14", "Exercize 15")
+            exes <- sample(muscles, 15)
+        }
+
+        if (input$Equipment == "Yes"){
+            z <- "Yes"
+        }
+        else if (input$Equipment == "No"){
+            z <- "No"
+        }
+
+        if (input$Time == "15 Minutes"){
+            a <- "5"
+        }
+        else if (input$Time == "30 Minutes"){
+            a <- "10"
+        }
+        else if (input$Time == "60 Minutes"){
+            a <- "15"
+        }
+
+        if (input$Time == "15 Minutes"){
+            b <- "3 Times"
+        }
+        else if (input$Time == "30 Minutes"){
+            b <- "3 Times"
+        }
+        else if (input$Time == "60 Minutes"){
+            b <- "4 Times"
+        }
+
+        #Data frame
+
+        df <- data.frame(
+            Workout = c("Distribution", "Minutes", "Equipment", "Number of Exercizes", exnums, "Repeat"),
+            Generated = as.character(c(x, y, z, a,exes, b)),
+            stringsAsFactors = FALSE)
+        names(df) <- NULL
+        df
+
+    })
+
+
+
+
+    output$nText <- renderTable({
+        ntext()
+    })
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
